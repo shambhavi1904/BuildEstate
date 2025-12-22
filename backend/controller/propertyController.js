@@ -34,10 +34,26 @@ export const searchProperties = async (req, res) => {
         });
     } catch (error) {
         console.error('Error searching properties:', error);
-        res.status(500).json({ 
+        
+        // Provide user-friendly error messages
+        let statusCode = 500;
+        let message = 'Failed to search properties';
+        
+        if (error.message?.includes('Firecrawl API key')) {
+            statusCode = 503; // Service Unavailable
+            message = error.message;
+        } else if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+            statusCode = 401;
+            message = 'Firecrawl API authentication failed. Please configure a valid API key.';
+        }
+        
+        res.status(statusCode).json({ 
             success: false, 
-            message: 'Failed to search properties',
-            error: error.message
+            message,
+            error: error.message,
+            ...(error.message?.includes('Firecrawl') && {
+                note: 'Firecrawl is an optional service for web scraping. You can still use other features of the application.'
+            })
         });
     }
 };
@@ -67,10 +83,26 @@ export const getLocationTrends = async (req, res) => {
         });
     } catch (error) {
         console.error('Error getting location trends:', error);
-        res.status(500).json({ 
+        
+        // Provide user-friendly error messages
+        let statusCode = 500;
+        let message = 'Failed to get location trends';
+        
+        if (error.message?.includes('Firecrawl API key')) {
+            statusCode = 503; // Service Unavailable
+            message = error.message;
+        } else if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+            statusCode = 401;
+            message = 'Firecrawl API authentication failed. Please configure a valid API key.';
+        }
+        
+        res.status(statusCode).json({ 
             success: false, 
-            message: 'Failed to get location trends',
-            error: error.message
+            message,
+            error: error.message,
+            ...(error.message?.includes('Firecrawl') && {
+                note: 'Firecrawl is an optional service for web scraping. You can still use other features of the application.'
+            })
         });
     }
 };

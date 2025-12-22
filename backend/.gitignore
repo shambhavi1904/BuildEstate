@@ -70,3 +70,6 @@ coverage/
 # Storybook files
 out/
 .storybook-out/
+
+# Uploads directory
+uploads/

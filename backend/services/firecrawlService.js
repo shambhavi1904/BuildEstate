@@ -3,12 +3,32 @@ import { config } from '../config/config.js';
 
 class FirecrawlService {
     constructor() {
-        this.firecrawl = new FirecrawlApp({
-            apiKey: config.firecrawlApiKey
-        });
+        // Check if API key is available
+        if (!config.firecrawlApiKey) {
+            console.warn('⚠️  Firecrawl API key not configured. Firecrawl features will be disabled.');
+            this.firecrawl = null;
+        } else {
+            try {
+                this.firecrawl = new FirecrawlApp({
+                    apiKey: config.firecrawlApiKey
+                });
+            } catch (error) {
+                console.error('❌ Failed to initialize Firecrawl:', error.message);
+                this.firecrawl = null;
+            }
+        }
+    }
+
+    isAvailable() {
+        return this.firecrawl !== null && config.firecrawlApiKey !== undefined;
     }
 
     async findProperties(city, maxPrice, propertyCategory = "Residential", propertyType = "Flat", limit = 6) {
+        // Check if Firecrawl is available
+        if (!this.isAvailable()) {
+            throw new Error('Firecrawl API key is not configured. Please add FIRECRAWL_API_KEY to your .env.local file. This feature is optional.');
+        }
+
         try {
             const formattedLocation = city.toLowerCase().replace(/\s+/g, '-');
             
@@ -93,12 +113,21 @@ class FirecrawlService {
 
             return extractResult.data;
         } catch (error) {
+            // Provide more helpful error messages
+            if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+                throw new Error('Firecrawl API key is invalid or expired. Please check your FIRECRAWL_API_KEY in .env.local file.');
+            }
             console.error('Error finding properties:', error);
             throw error;
         }
     }
 
     async getLocationTrends(city, limit = 5) {
+        // Check if Firecrawl is available
+        if (!this.isAvailable()) {
+            throw new Error('Firecrawl API key is not configured. Please add FIRECRAWL_API_KEY to your .env.local file. This feature is optional.');
+        }
+
         try {
             const formattedLocation = city.toLowerCase().replace(/\s+/g, '-');
             
@@ -154,6 +183,10 @@ class FirecrawlService {
             
             return extractResult.data;
         } catch (error) {
+            // Provide more helpful error messages
+            if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+                throw new Error('Firecrawl API key is invalid or expired. Please check your FIRECRAWL_API_KEY in .env.local file.');
+            }
             console.error('Error fetching location trends:', error);
             throw error;
         }

@@ -40,18 +40,30 @@ const PropertyListings = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${backendurl}/api/products/list`);
-      if (response.data.success) {
+      if (response.data.success && response.data.property) {
         const parsedProperties = response.data.property.map(property => ({
           ...property,
-          amenities: parseAmenities(property.amenities)
+          amenities: parseAmenities(property.amenities),
+          price: property.price || 0,
+          beds: property.beds || 0,
+          baths: property.baths || 0,
+          sqft: property.sqft || 0,
+          image: property.image || [],
+          title: property.title || 'Untitled Property',
+          location: property.location || 'Location not specified',
+          type: property.type || 'Unknown',
+          availability: property.availability || 'rent',
+          createdAt: property.createdAt || property.created_at || new Date().toISOString()
         }));
         setProperties(parsedProperties);
       } else {
-        toast.error(response.data.error);
+        toast.error(response.data.message || response.data.error || "Failed to fetch properties");
+        setProperties([]);
       }
     } catch (error) {
       console.error("Error fetching properties:", error);
-      toast.error("Failed to fetch properties");
+      toast.error(error.response?.data?.message || "Failed to fetch properties");
+      setProperties([]);
     } finally {
       setLoading(false);
     }
@@ -65,11 +77,17 @@ const PropertyListings = () => {
   };
 
   const parseAmenities = (amenities) => {
-    if (!amenities || !Array.isArray(amenities)) return [];
+    if (!amenities) return [];
+    if (Array.isArray(amenities) && amenities.length === 0) return [];
     try {
-      return typeof amenities[0] === "string" 
-        ? JSON.parse(amenities[0].replace(/'/g, '"'))
-        : amenities;
+      if (Array.isArray(amenities)) {
+        // If it's already an array, check if first element is a string
+        if (amenities.length > 0 && typeof amenities[0] === "string") {
+          return JSON.parse(amenities[0].replace(/'/g, '"'));
+        }
+        return amenities;
+      }
+      return [];
     } catch (error) {
       console.error("Error parsing amenities:", error);
       return [];
@@ -113,11 +131,13 @@ const PropertyListings = () => {
     .sort((a, b) => {
       switch (sortBy) {
         case "price-low":
-          return a.price - b.price;
+          return (a.price || 0) - (b.price || 0);
         case "price-high":
-          return b.price - a.price;
+          return (b.price || 0) - (a.price || 0);
         case "newest":
-          return new Date(b.createdAt) - new Date(a.createdAt);
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateB - dateA;
         default:
           return 0;
       }
@@ -297,7 +317,7 @@ const PropertyListings = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Avg. Price</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ₹{properties.length > 0 ? Math.round(properties.reduce((sum, p) => sum + p.price, 0) / properties.length / 100000) : 0}L
+                  ₹{properties.length > 0 ? Math.round(properties.reduce((sum, p) => sum + (p.price || 0), 0) / properties.length / 100000) : 0}L
                 </p>
               </div>
               <div className="p-3 bg-orange-50 rounded-xl">
@@ -456,10 +476,13 @@ const PropertyListings = () => {
                         : 'h-56'
                     }`}>
                       <img
-                        src={property.image[0] || "/placeholder.jpg"}
-                        alt={property.title}
+                        src={(property.image && property.image[0]) || "/placeholder.jpg"}
+                        alt={property.title || 'Property'}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         loading="lazy"
+                        onError={(e) => {
+                          e.target.src = "/placeholder.jpg";
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                       
@@ -513,7 +536,7 @@ const PropertyListings = () => {
                           </div>
                           <div className="flex items-center justify-between">
                             <p className="text-3xl font-bold text-gray-900">
-                              ₹{property.price.toLocaleString()}
+                              ₹{property.price ? property.price.toLocaleString() : 'N/A'}
                             </p>
                             <div className="flex items-center gap-1">
                               <Eye className="w-4 h-4 text-gray-400" />
@@ -526,17 +549,17 @@ const PropertyListings = () => {
                         <div className="grid grid-cols-3 gap-4 mb-6">
                           <div className="text-center p-3 bg-gray-50 rounded-xl">
                             <BedDouble className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-                            <div className="text-sm font-medium text-gray-900">{property.beds}</div>
+                            <div className="text-sm font-medium text-gray-900">{property.beds || 'N/A'}</div>
                             <div className="text-xs text-gray-500">Bedrooms</div>
                           </div>
                           <div className="text-center p-3 bg-gray-50 rounded-xl">
                             <Bath className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-                            <div className="text-sm font-medium text-gray-900">{property.baths}</div>
+                            <div className="text-sm font-medium text-gray-900">{property.baths || 'N/A'}</div>
                             <div className="text-xs text-gray-500">Bathrooms</div>
                           </div>
                           <div className="text-center p-3 bg-gray-50 rounded-xl">
                             <Maximize className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-                            <div className="text-sm font-medium text-gray-900">{property.sqft}</div>
+                            <div className="text-sm font-medium text-gray-900">{property.sqft || 'N/A'}</div>
                             <div className="text-xs text-gray-500">Sq Ft</div>
                           </div>
                         </div>
@@ -568,7 +591,7 @@ const PropertyListings = () => {
                       {viewMode === 'list' && (
                         <div className="flex items-center justify-between pt-4 mt-4 border-t">
                           <div className="text-sm text-gray-500">
-                            Listed {new Date(property.createdAt).toLocaleDateString()}
+                            Listed {property.createdAt ? new Date(property.createdAt).toLocaleDateString() : 'N/A'}
                           </div>
                           <div className="flex items-center gap-2">
                             <Link 

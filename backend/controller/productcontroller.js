@@ -16,15 +16,35 @@ const addproperty = async (req, res) => {
         // Upload images to ImageKit and delete after upload
         const imageUrls = await Promise.all(
             images.map(async (item) => {
-                const result = await imagekit.upload({
-                    file: fs.readFileSync(item.path),
-                    fileName: item.originalname,
-                    folder: "Property",
-                });
-                fs.unlink(item.path, (err) => {
-                    if (err) console.log("Error deleting the file: ", err);
-                });
-                return result.url;
+                try {
+                    // Check if file exists before reading
+                    if (!fs.existsSync(item.path)) {
+                        throw new Error(`File not found: ${item.path}`);
+                    }
+                    
+                    const fileBuffer = fs.readFileSync(item.path);
+                    const result = await imagekit.upload({
+                        file: fileBuffer,
+                        fileName: item.originalname,
+                        folder: "Property",
+                    });
+                    
+                    // Delete file after successful upload
+                    fs.unlink(item.path, (err) => {
+                        if (err) console.log("Error deleting the file: ", err);
+                    });
+                    
+                    return result.url;
+                } catch (error) {
+                    console.error(`Error uploading image ${item.originalname}:`, error);
+                    // Delete file even if upload fails
+                    if (fs.existsSync(item.path)) {
+                        fs.unlink(item.path, (err) => {
+                            if (err) console.log("Error deleting the file: ", err);
+                        });
+                    }
+                    throw error;
+                }
             })
         );
 
@@ -49,8 +69,12 @@ const addproperty = async (req, res) => {
 
         res.json({ message: "Product added successfully", success: true });
     } catch (error) {
-        console.log("Error adding product: ", error);
-        res.status(500).json({ message: "Server Error", success: false });
+        console.error("Error adding product: ", error);
+        res.status(500).json({ 
+            message: error.message || "Server Error", 
+            success: false,
+            error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };
 
@@ -115,15 +139,35 @@ const updateproperty = async (req, res) => {
         // Upload images to ImageKit and delete after upload
         const imageUrls = await Promise.all(
             images.map(async (item) => {
-                const result = await imagekit.upload({
-                    file: fs.readFileSync(item.path),
-                    fileName: item.originalname,
-                    folder: "Property",
-                });
-                fs.unlink(item.path, (err) => {
-                    if (err) console.log("Error deleting the file: ", err);
-                });
-                return result.url;
+                try {
+                    // Check if file exists before reading
+                    if (!fs.existsSync(item.path)) {
+                        throw new Error(`File not found: ${item.path}`);
+                    }
+                    
+                    const fileBuffer = fs.readFileSync(item.path);
+                    const result = await imagekit.upload({
+                        file: fileBuffer,
+                        fileName: item.originalname,
+                        folder: "Property",
+                    });
+                    
+                    // Delete file after successful upload
+                    fs.unlink(item.path, (err) => {
+                        if (err) console.log("Error deleting the file: ", err);
+                    });
+                    
+                    return result.url;
+                } catch (error) {
+                    console.error(`Error uploading image ${item.originalname}:`, error);
+                    // Delete file even if upload fails
+                    if (fs.existsSync(item.path)) {
+                        fs.unlink(item.path, (err) => {
+                            if (err) console.log("Error deleting the file: ", err);
+                        });
+                    }
+                    throw error;
+                }
             })
         );
 
@@ -143,8 +187,12 @@ const updateproperty = async (req, res) => {
         await property.save();
         res.json({ message: "Property updated successfully", success: true });
     } catch (error) {
-        console.log("Error updating product: ", error);
-        res.status(500).json({ message: "Server Error", success: false });
+        console.error("Error updating product: ", error);
+        res.status(500).json({ 
+            message: error.message || "Server Error", 
+            success: false,
+            error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };
 

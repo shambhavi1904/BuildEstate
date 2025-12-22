@@ -94,7 +94,10 @@ app.use(cors({
 connectdb().then(() => {
   console.log('Database connected successfully');
 }).catch(err => {
-  console.error('Database connection error:', err);
+  console.error('Database connection error:', err.message);
+  // Don't exit - allow server to start even if DB connection fails initially
+  // The connection will retry automatically
+  console.log('⚠️  Server will continue running. MongoDB connection will retry automatically.');
 });
 
 
@@ -123,15 +126,30 @@ app.use((err, req, res, next) => {
 
 // Handle unhandled rejections
 process.on('unhandledRejection', (err) => {
-  console.log('UNHANDLED REJECTION! 💥 Shutting down...');
+  console.log('UNHANDLED REJECTION! 💥');
   console.error(err);
+
+  // If it's a MongoDB Atlas connectivity issue, don't kill the server.
+  const msg = String(err?.message || err || '');
+  if (
+    err?.name === 'MongooseServerSelectionError' ||
+    msg.includes('MongoDB Atlas cluster') ||
+    msg.includes('IP that isn\'t whitelisted')
+  ) {
+    console.log('⚠️  Detected MongoDB connection issue. Server will keep running and MongoDB will retry in the background.');
+    return;
+  }
+
+  // For other unexpected errors, exit to avoid running in a bad state
+  console.log('Shutting down due to unhandled rejection...');
   process.exit(1);
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
-  console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  console.log('UNCAUGHT EXCEPTION! 💥');
   console.error(err);
+  console.log('Shutting down due to uncaught exception...');
   process.exit(1);
 });
 

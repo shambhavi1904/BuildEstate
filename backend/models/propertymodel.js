@@ -49,6 +49,8 @@ const propertySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+}, {
+  timestamps: true // This adds createdAt and updatedAt fields automatically
 });
 
 const Property = mongoose.model("Property", propertySchema);
