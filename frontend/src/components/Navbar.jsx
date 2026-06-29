@@ -8,16 +8,12 @@ import {
   LogOut,
   Home,
   Search,
-  Users,
-  MessageCircle,
   Sparkles,
   BotMessageSquare,
-  Bell,
-  Settings,
-  UserCircle,
   Heart,
   Zap,
   Crown,
+  UserCircle,
 } from "lucide-react";
 import logo from "../assets/home-regular-24.png";
 import { useAuth } from "../context/AuthContext";
@@ -89,7 +85,6 @@ const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [notifications] = useState(3); // Example notification count
   const dropdownRef = useRef(null);
   const { isLoggedIn, user, logout } = useAuth();
   const location = useLocation();
@@ -198,24 +193,6 @@ const Navbar = () => {
             <div className="flex items-center space-x-4">
               {isLoggedIn ? (
                 <div className="flex items-center space-x-3">
-                  {/* Notification Bell */}
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <Bell className="w-5 h-5 text-gray-600" />
-                    {notifications > 0 && (
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium"
-                      >
-                        {notifications}
-                      </motion.span>
-                    )}
-                  </motion.button>
-
                   {/* User Profile Dropdown */}
                   <div className="relative" ref={dropdownRef}>
                     <motion.button
@@ -291,13 +268,6 @@ const Navbar = () => {
                               <Heart className="w-4 h-4" />
                               <span>Saved Properties</span>
                             </motion.button>
-                            <motion.button
-                              whileHover={{ x: 4, backgroundColor: "rgb(243 244 246)" }}
-                              className="w-full px-6 py-3 text-left text-sm text-gray-700 hover:text-blue-600 flex items-center space-x-3 transition-colors"
-                            >
-                              <Settings className="w-4 h-4" />
-                              <span>Settings</span>
-                            </motion.button>
                             <div className="border-t border-gray-100 my-2" />
                             <motion.button
                               whileHover={{ x: 4, backgroundColor: "rgb(254 242 242)" }}
@@ -366,15 +336,6 @@ const Navbar = () => {
                 <Menu className="w-6 h-6 text-gray-700" />
               )}
             </motion.div>
-            {isLoggedIn && notifications > 0 && (
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium"
-              >
-                {notifications}
-              </motion.span>
-            )}
           </motion.button>
         </div>
       </div>
@@ -396,7 +357,6 @@ const Navbar = () => {
                 user={user}
                 handleLogout={handleLogout}
                 currentPath={location.pathname}
-                notifications={notifications}
               />
             </div>
           </motion.div>
@@ -408,36 +368,22 @@ const Navbar = () => {
 
 const NavLinks = ({ currentPath }) => {
   // Enhanced NavLinks with modern styling
-  const navLinks = [
-    { 
-      name: "Home", 
-      path: "/", 
-      icon: Home, 
-      color: "from-blue-500 to-cyan-500",
-      description: "Welcome home"
-    },
-    { 
-      name: "Properties", 
-      path: "/properties", 
-      icon: Search, 
-      color: "from-green-500 to-emerald-500",
-      description: "Find your dream"
-    },
-    { 
-      name: "About Us", 
-      path: "/about", 
-      icon: Users, 
-      color: "from-purple-500 to-pink-500",
-      description: "Our story"
-    },
-    { 
-      name: "Contact", 
-      path: "/contact", 
-      icon: MessageCircle, 
-      color: "from-orange-500 to-red-500",
-      description: "Get in touch"
-    },
-  ];
+const navLinks = [
+  {
+    name: "Home",
+    path: "/",
+    icon: Home,
+    color: "from-blue-500 to-cyan-500",
+    description: "Welcome home"
+  },
+  {
+    name: "Properties",
+    path: "/properties",
+    icon: Search,
+    color: "from-green-500 to-emerald-500",
+    description: "Find your dream"
+  },
+];
 
   // Special animation for sparkles
   const [sparkleKey, setSparkleKey] = useState(0);
@@ -578,7 +524,6 @@ const MobileNavLinks = ({
   user,
   handleLogout,
   currentPath,
-  notifications,
 }) => {
   // Enhanced navigation links with colors and descriptions
   const navLinks = [
@@ -595,20 +540,6 @@ const MobileNavLinks = ({
       icon: Search, 
       color: "from-green-500 to-emerald-500",
       description: "Find your dream"
-    },
-    { 
-      name: "About Us", 
-      path: "/about", 
-      icon: Users, 
-      color: "from-purple-500 to-pink-500",
-      description: "Our story"
-    },
-    { 
-      name: "Contact", 
-      path: "/contact", 
-      icon: MessageCircle, 
-      color: "from-orange-500 to-red-500",
-      description: "Get in touch"
     },
   ];
 
@@ -761,15 +692,6 @@ const MobileNavLinks = ({
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 border-2 border-white rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-green-600 rounded-full" />
                   </div>
-                  {notifications > 0 && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
-                    >
-                      {notifications}
-                    </motion.div>
-                  )}
                 </div>
                 <div className="flex-1">
                   <p className="text-lg font-bold text-gray-900">{user?.name}</p>
@@ -862,7 +784,6 @@ MobileNavLinks.propTypes = {
   user: PropTypes.object,
   handleLogout: PropTypes.func.isRequired,
   currentPath: PropTypes.string.isRequired,
-  notifications: PropTypes.number,
 };
 
 export default Navbar;

@@ -12,7 +12,7 @@ export default function MissionVision() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">Our Purpose</h2>
+          <h2 className="text-4xl font-bold mb-4">About BuildEstate</h2>
           <div className="w-24 h-1 bg-blue-600 mx-auto"></div>
         </motion.div>
 

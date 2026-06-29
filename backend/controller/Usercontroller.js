@@ -60,7 +60,11 @@ const register = async (req, res) => {
       html: getWelcomeTemplate(name)
     };
 
+    try {
     await transporter.sendMail(mailOptions);
+} catch (err) {
+    console.log("Email sending failed:", err.message);
+}
 
     return res.json({ token, user: { name: newUser.name, email: newUser.email }, success: true });
   } catch (error) {
@@ -88,7 +92,11 @@ const forgotpassword = async (req, res) => {
       html: getPasswordResetTemplate(resetUrl)
     };
 
+    try {
     await transporter.sendMail(mailOptions);
+} catch (err) {
+    console.log("Email sending failed:", err.message);
+}
     return res.status(200).json({ message: "Email sent", success: true });
   } catch (error) {
     console.error(error);

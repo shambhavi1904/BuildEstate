@@ -1,196 +1,338 @@
 import FirecrawlApp from "@mendable/firecrawl-js";
-import { config } from '../config/config.js';
+import { config } from "../config/config.js";
 
 class FirecrawlService {
-    constructor() {
-        // Check if API key is available
-        if (!config.firecrawlApiKey) {
-            console.warn('⚠️  Firecrawl API key not configured. Firecrawl features will be disabled.');
-            this.firecrawl = null;
-        } else {
-            try {
-                this.firecrawl = new FirecrawlApp({
-                    apiKey: config.firecrawlApiKey
-                });
-            } catch (error) {
-                console.error('❌ Failed to initialize Firecrawl:', error.message);
-                this.firecrawl = null;
-            }
-        }
+  constructor() {
+    if (!config.firecrawlApiKey) {
+      console.warn("⚠ Firecrawl API key not found.");
+      this.firecrawl = null;
+      return;
     }
 
-    isAvailable() {
-        return this.firecrawl !== null && config.firecrawlApiKey !== undefined;
+    this.firecrawl = new FirecrawlApp({
+      apiKey: config.firecrawlApiKey,
+    });
+  }
+
+  isAvailable() {
+    return !!this.firecrawl;
+  }
+
+  /**
+   * Remove duplicate properties
+   */
+  removeDuplicates(properties) {
+    const map = new Map();
+
+    properties.forEach((property) => {
+      const key = `${property.building_name}-${property.location_address}`;
+
+      if (!map.has(key)) {
+        map.set(key, property);
+      }
+    });
+
+    return [...map.values()];
+  }
+
+  /**
+   * Clean extracted data
+   */
+  cleanProperties(properties = []) {
+    return properties.map((item) => ({
+      building_name:
+        item.building_name || "Property",
+
+      property_type:
+        item.property_type || "Residential",
+
+      location_address:
+        item.location_address || "Location not available",
+
+      price:
+        item.price || "Price on request",
+
+      description:
+        item.description || "No description available.",
+
+      amenities:
+        Array.isArray(item.amenities)
+          ? item.amenities
+          : [],
+
+      area_sqft:
+        item.area_sqft || "N/A",
+    }));
+  }
+
+  /**
+   * Search Properties
+   */
+  async findProperties(
+    city,
+    maxPrice,
+    propertyCategory = "Residential",
+    propertyType = "Flat",
+    limit = 6
+  ) {
+    if (!this.isAvailable()) {
+      throw new Error("Firecrawl API is not configured.");
     }
 
-    async findProperties(city, maxPrice, propertyCategory = "Residential", propertyType = "Flat", limit = 6) {
-        // Check if Firecrawl is available
-        if (!this.isAvailable()) {
-            throw new Error('Firecrawl API key is not configured. Please add FIRECRAWL_API_KEY to your .env.local file. This feature is optional.');
-        }
+    try {
+      console.log(
+        `Searching ${propertyType} in ${city} below ₹${maxPrice} Cr`
+      );
 
-        try {
-            const formattedLocation = city.toLowerCase().replace(/\s+/g, '-');
-            
-            // URLs for property websites (using 99acres as an example)
-            const urls = [
-                `https://www.99acres.com/property-in-${formattedLocation}-ffid/*`
-            ];
+      const formattedCity = city
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-");
 
-            const propertyTypePrompt = propertyType === "Flat" ? "Flats" : "Individual Houses";
-            
-            // Define schema directly as a JSON schema object
-            const propertySchema = {
-                type: "object",
-                properties: {
-                    properties: {
-                        type: "array",
-                        description: "List of property details",
-                        items: {
-                            type: "object",
-                            properties: {
-                                building_name: {
-                                    type: "string",
-                                    description: "Name of the building/property"
-                                },
-                                property_type: {
-                                    type: "string",
-                                    description: "Type of property (commercial, residential, etc)"
-                                },
-                                location_address: {
-                                    type: "string",
-                                    description: "Complete address of the property"
-                                },
-                                price: {
-                                    type: "string",
-                                    description: "Price of the property"
-                                },
-                                description: {
-                                    type: "string",
-                                    description: "Brief description of the property"
-                                },
-                                amenities: {
-                                    type: "array",
-                                    items: { type: "string" },
-                                    description: "List of key amenities"
-                                },
-                                area_sqft: {
-                                    type: "string",
-                                    description: "Area in square feet"
-                                }
-                            },
-                            required: ["building_name", "property_type", "location_address", "price"]
-                        }
-                    }
+      const urls = [
+        `https://www.99acres.com/property-in-${formattedCity}-ffid`,
+      ];
+
+      const schema = {
+        type: "object",
+
+        properties: {
+          properties: {
+            type: "array",
+
+            items: {
+              type: "object",
+
+              properties: {
+                building_name: {
+                  type: "string",
                 },
-                required: ["properties"]
-            };
-            
-            const extractResult = await this.firecrawl.extract(
-                urls,
-                {
-                    prompt: `Extract ONLY ${limit} different ${propertyCategory} ${propertyTypePrompt} from ${city} that cost less than ${maxPrice} crores.
-                    
-                    Requirements:
-                    - Property Category: ${propertyCategory} properties only
-                    - Property Type: ${propertyTypePrompt} only
-                    - Location: ${city}
-                    - Maximum Price: ${maxPrice} crores
-                    - Include essential property details (building name, price, location, area)
-                    - Keep descriptions brief (under 100 words)
-                    - IMPORTANT: Return data for EXACTLY ${limit} different properties. No more.
-                    `,
-                    schema: propertySchema,
-                    enableWebSearch: true
-                }
-            );
 
-            if (!extractResult.success) {
-                throw new Error(`Failed to extract property data: ${extractResult.error || 'Unknown error'}`);
-            }
-
-            console.log('Extracted properties count:', extractResult.data.properties.length);
-
-            return extractResult.data;
-        } catch (error) {
-            // Provide more helpful error messages
-            if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-                throw new Error('Firecrawl API key is invalid or expired. Please check your FIRECRAWL_API_KEY in .env.local file.');
-            }
-            console.error('Error finding properties:', error);
-            throw error;
-        }
-    }
-
-    async getLocationTrends(city, limit = 5) {
-        // Check if Firecrawl is available
-        if (!this.isAvailable()) {
-            throw new Error('Firecrawl API key is not configured. Please add FIRECRAWL_API_KEY to your .env.local file. This feature is optional.');
-        }
-
-        try {
-            const formattedLocation = city.toLowerCase().replace(/\s+/g, '-');
-            
-            // Define schema directly as a JSON schema object
-            const locationSchema = {
-                type: "object",
-                properties: {
-                    locations: {
-                        type: "array",
-                        description: "List of location data points",
-                        items: {
-                            type: "object",
-                            properties: {
-                                location: {
-                                    type: "string"
-                                },
-                                price_per_sqft: {
-                                    type: "number"
-                                },
-                                percent_increase: {
-                                    type: "number"
-                                },
-                                rental_yield: {
-                                    type: "number"
-                                }
-                            },
-                            required: ["location", "price_per_sqft", "percent_increase", "rental_yield"]
-                        }
-                    }
+                property_type: {
+                  type: "string",
                 },
-                required: ["locations"]
-            };
-            
-            const extractResult = await this.firecrawl.extract(
-                [`https://www.99acres.com/property-rates-and-price-trends-in-${formattedLocation}-prffid/*`],
-                {
-                    prompt: `Extract price trends data for ${limit} major localities in ${city}.
-                    IMPORTANT:
-                    - Return data for EXACTLY ${limit} different localities
-                    - Include data points: location name, price per square foot, yearly percent increase, and rental yield
-                    - Format as a list of locations with their respective data
-                    `,
-                    schema: locationSchema,
-                    enableWebSearch: true
-                }
-            );
 
-            if (!extractResult.success) {
-                throw new Error(`Failed to extract location data: ${extractResult.error || 'Unknown error'}`);
-            }
+                location_address: {
+                  type: "string",
+                },
 
-            console.log('Extracted locations count:', extractResult.data.locations.length);
-            
-            return extractResult.data;
-        } catch (error) {
-            // Provide more helpful error messages
-            if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-                throw new Error('Firecrawl API key is invalid or expired. Please check your FIRECRAWL_API_KEY in .env.local file.');
-            }
-            console.error('Error fetching location trends:', error);
-            throw error;
-        }
+                price: {
+                  type: "string",
+                },
+
+                description: {
+                  type: "string",
+                },
+
+                amenities: {
+                  type: "array",
+                  items: {
+                    type: "string",
+                  },
+                },
+
+                area_sqft: {
+                  type: "string",
+                },
+              },
+
+              required: [
+                "building_name",
+                "location_address",
+                "price",
+              ],
+            },
+          },
+        },
+
+        required: ["properties"],
+      };
+
+      const result = await this.firecrawl.extract(urls, {
+        prompt: `
+You are a Real Estate Data Extractor.
+
+Extract ONLY ${limit} unique properties.
+
+Rules:
+
+1. City MUST be ${city}
+
+2. Property Category:
+${propertyCategory}
+
+3. Property Type:
+${propertyType}
+
+4. Budget:
+Less than ₹${maxPrice} Crores.
+
+5. Ignore advertisements.
+
+6. Ignore duplicate listings.
+
+7. Ignore projects outside ${city}.
+
+8. Return only real residential listings.
+
+9. Description should be under 80 words.
+
+10. Return EXACTLY ${limit} properties.
+`,
+
+        schema,
+
+        enableWebSearch: true,
+      });
+
+      if (!result.success) {
+        throw new Error(
+          result.error || "Firecrawl extraction failed."
+        );
+      }
+
+      let properties = result.data.properties || [];
+
+      properties = this.cleanProperties(properties);
+
+      properties = this.removeDuplicates(properties);
+
+      console.log(
+        `✅ Extracted ${properties.length} properties`
+      );
+
+      return {
+        properties,
+      };
+    } catch (error) {
+      console.error("Firecrawl Error:", error);
+
+      if (
+        error.message.includes("401") ||
+        error.message.includes("Unauthorized")
+      ) {
+        throw new Error(
+          "Firecrawl API key is invalid."
+        );
+      }
+
+      if (
+        error.message.includes("429")
+      ) {
+        throw new Error(
+          "Firecrawl rate limit exceeded."
+        );
+      }
+
+      throw new Error(
+        error.message || "Unable to fetch properties."
+      );
     }
+  }
+
+  /**
+   * Location Trends
+   */
+  async getLocationTrends(city, limit = 5) {
+    if (!this.isAvailable()) {
+      throw new Error("Firecrawl API not configured.");
+    }
+
+    try {
+      const formattedCity = city
+        .toLowerCase()
+        .replace(/\s+/g, "-");
+
+      const schema = {
+        type: "object",
+
+        properties: {
+          locations: {
+            type: "array",
+
+            items: {
+              type: "object",
+
+              properties: {
+                location: {
+                  type: "string",
+                },
+
+                price_per_sqft: {
+                  type: "number",
+                },
+
+                percent_increase: {
+                  type: "number",
+                },
+
+                rental_yield: {
+                  type: "number",
+                },
+              },
+
+              required: [
+                "location",
+                "price_per_sqft",
+                "percent_increase",
+                "rental_yield",
+              ],
+            },
+          },
+        },
+
+        required: ["locations"],
+      };
+
+      const result = await this.firecrawl.extract(
+        [
+          `https://www.99acres.com/property-rates-and-price-trends-in-${formattedCity}-prffid`,
+        ],
+        {
+          prompt: `
+Extract ${limit} major localities of ${city}.
+
+Return
+
+Location
+
+Price Per Sq.ft
+
+Annual Increase %
+
+Rental Yield %
+
+Only real data.
+`,
+          schema,
+          enableWebSearch: true,
+        }
+      );
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      console.log(
+        `✅ Extracted ${result.data.locations.length} locations`
+      );
+
+      return result.data;
+    } catch (error) {
+      console.error(error);
+
+      if (
+        error.message.includes("401") ||
+        error.message.includes("Unauthorized")
+      ) {
+        throw new Error(
+          "Firecrawl API key is invalid."
+        );
+      }
+
+      throw error;
+    }
+  }
 }
 
 export default new FirecrawlService();
