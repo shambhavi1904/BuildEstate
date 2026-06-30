@@ -145,7 +145,7 @@ const AIPropertyHub = () => {
         </div>
 
         {/* Custom animations */}
-        <style jsx global>{`
+        <style>{`
           @keyframes orbit {
             0% {
               transform: rotate(0deg) translateX(35px) rotate(0deg);

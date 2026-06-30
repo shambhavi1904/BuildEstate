@@ -1,78 +1,76 @@
-import firecrawlService from "../services/firecrawlService.js";
+import Property from "../models/propertymodel.js";
 import aiService from "../services/aiService.js";
 
-/**
- * Search Properties
- */
+// Search Properties using MongoDB + Azure AI
 export const searchProperties = async (req, res) => {
   try {
     const {
       city,
       maxPrice,
-      propertyCategory = "Residential",
-      propertyType = "Flat",
+      propertyCategory,
+      propertyType,
       limit = 6,
     } = req.body;
 
+    // Validation
     if (!city || !maxPrice) {
       return res.status(400).json({
         success: false,
-        message: "City and Max Price are required.",
+        message: "City and maxPrice are required",
       });
     }
 
-    console.log("=======================================");
-    console.log("🔍 Property Search Request");
-    console.log("City:", city);
-    console.log("Budget:", maxPrice);
-    console.log("Category:", propertyCategory);
-    console.log("Type:", propertyType);
-    console.log("=======================================");
+    // Search properties from MongoDB
+    const properties = await Property.find({
+      location: {
+        $regex: city,
+        $options: "i",
+      },
+      
+      price: {
+        $lte: Number(maxPrice) * 10000000, // Convert Crores to Rupees
+      },
+    })
+      .limit(Number(limit))
+      .sort({ price: 1 });
 
-    // Step 1 : Fetch Property Data
-    const propertyResult = await firecrawlService.findProperties(
-      city,
-      maxPrice,
-      propertyCategory,
-      propertyType,
-      limit
-    );
-
-    const properties = propertyResult.properties || [];
-
-    // Step 2 : AI Analysis
-    let analysis = "";
-
-    if (properties.length > 0) {
-      analysis = await aiService.analyzeProperties(
-        properties,
-        city,
-        maxPrice,
-        propertyCategory,
-        propertyType
-      );
+    // If no properties found
+    if (!properties.length) {
+      return res.status(404).json({
+        success: false,
+        message: `No properties found in ${city} within ₹${maxPrice} Crores`,
+        properties: [],
+      });
     }
 
-    return res.status(200).json({
+    // Generate AI analysis using Azure AI
+    const analysis = await aiService.analyzeProperties(
+      properties,
+      city,
+      maxPrice,
+      propertyCategory || "Residential",
+      propertyType || "Flat"
+    );
+
+    // Send response
+    res.status(200).json({
       success: true,
-      total: properties.length,
+      count: properties.length,
       properties,
       analysis,
     });
   } catch (error) {
-    console.error("❌ Property Search Error");
-    console.error(error);
+    console.error("Error searching properties:", error);
 
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message: error.message || "Unable to search properties.",
+      message: "Failed to search properties",
+      error: error.message,
     });
   }
 };
 
-/**
- * Location Trends
- */
+// Get Location Trends using MongoDB
 export const getLocationTrends = async (req, res) => {
   try {
     const { city } = req.params;
@@ -80,42 +78,66 @@ export const getLocationTrends = async (req, res) => {
     if (!city) {
       return res.status(400).json({
         success: false,
-        message: "City is required.",
+        message: "City parameter is required",
       });
     }
 
-    console.log("=======================================");
-    console.log("📈 Fetching Location Trends");
-    console.log("City:", city);
-    console.log("=======================================");
+    // Get properties of the city
+    const properties = await Property.find({
+      location: {
+        $regex: city,
+        $options: "i",
+      },
+    });
 
-    const result = await firecrawlService.getLocationTrends(city);
-
-    const locations = result.locations || [];
-
-    let analysis = "";
-
-    if (locations.length > 0) {
-      analysis = await aiService.analyzeLocationTrends(
-        locations,
-        city
-      );
+    if (!properties.length) {
+      return res.status(404).json({
+        success: false,
+        message: `No location data found for ${city}`,
+        locations: [],
+      });
     }
 
-    return res.status(200).json({
+    // Create trend data from MongoDB properties
+    const locations = properties.map((property) => ({
+      location: property.location,
+      price_per_sqft:
+        property.sqft > 0
+          ? Math.round(property.price / property.sqft)
+          : 0,
+
+      percent_increase: Math.floor(Math.random() * 20) + 5, // Dummy growth %
+
+      rental_yield: Number(
+        (Math.random() * (6 - 2) + 2).toFixed(1)
+      ), // Dummy rental yield
+    }));
+
+    // Remove duplicate locations
+    const uniqueLocations = [
+      ...new Map(
+        locations.map((item) => [item.location, item])
+      ).values(),
+    ];
+
+    // AI Analysis
+    const analysis = await aiService.analyzeLocationTrends(
+      uniqueLocations,
+      city
+    );
+
+    res.status(200).json({
       success: true,
-      total: locations.length,
-      locations,
+      locations: uniqueLocations,
       analysis,
     });
   } catch (error) {
-    console.error("❌ Location Trend Error");
-    console.error(error);
+    console.error("Error getting location trends:", error);
 
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message:
-        error.message || "Unable to fetch location trends.",
+      message: "Failed to get location trends",
+      error: error.message,
     });
   }
 };

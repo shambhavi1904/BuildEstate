@@ -1,12 +1,23 @@
 import express from 'express';
-import { searchProperties, getLocationTrends } from '../controller/propertyController.js';
+
+console.log("✅ propertyRoutes file loaded");
+
+import {
+  searchProperties,
+  getLocationTrends
+} from '../controller/propertyController.js';
 
 const router = express.Router();
 
-// Route to search for properties
-router.post('/properties/search', searchProperties);
+router.get('/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Property routes working'
+  });
+});
 
-// Route to get location trends
-router.get('/locations/:city/trends', getLocationTrends);
+router.post('/search', searchProperties);
+
+router.get('/:city/trends', getLocationTrends);
 
 export default router;

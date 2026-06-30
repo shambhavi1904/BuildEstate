@@ -108,7 +108,7 @@ app.use('/api/forms', formrouter);
 app.use('/api/news', newsrouter);
 app.use('/api/appointments', appointmentRouter);
 app.use('/api/admin', adminRouter);
-app.use('/api', propertyRoutes);
+app.use('/api/properties', propertyRoutes);
 
 
 app.use((err, req, res, next) => {
