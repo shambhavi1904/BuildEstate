@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { Grid, List, SlidersHorizontal, MapPin, Home } from "lucide-react";
@@ -8,6 +9,7 @@ import PropertyCard from "./Propertycard.jsx";
 import { Backendurl } from "../../App.jsx";
 
 const PropertiesPage = () => {
+  const location = useLocation();
   const [viewState, setViewState] = useState({
     isGridView: true,
     showFilters: false,
@@ -31,18 +33,30 @@ const PropertiesPage = () => {
     sortBy: "",
   });
 
+  useEffect(() => {
+  if (location.state) {
+    setFilters((prev) => ({
+      ...prev,
+      propertyType: location.state.propertyType || "",
+      searchQuery: location.state.searchQuery || "",
+    }));
+  }
+}, [location.state]);
+
   const fetchProperties = async () => {
     try {
       setPropertyState((prev) => ({ ...prev, loading: true }));
       const response = await axios.get(`${Backendurl}/api/products/list`);
       if (response.data.success) {
-        setPropertyState((prev) => ({
-          ...prev,
-          properties: response.data.property,
-          error: null,
-          loading: false,
-        }));
-      } else {
+  console.log(response.data.property); // <-- Add this line
+
+  setPropertyState((prev) => ({
+    ...prev,
+    properties: response.data.property,
+    error: null,
+    loading: false,
+  }));
+} else {
         throw new Error(response.data.message);
       }
     } catch (err) {
@@ -58,6 +72,7 @@ const PropertiesPage = () => {
   useEffect(() => {
     fetchProperties();
   }, []);
+
 
   const filteredProperties = useMemo(() => {
     return propertyState.properties

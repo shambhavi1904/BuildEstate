@@ -4,6 +4,7 @@ import PropertyCard from "../components/ai/PropertyCard";
 import LocationTrends from "../components/ai/LocationTrends";
 import AnalysisDisplay from "../components/ai/AnalysisDisplay";
 import { searchProperties, getLocationTrends } from "../services/api";
+import hubImage from "../assets/images/hub.png";
 import {
   Building,
   MapPin,
@@ -291,35 +292,56 @@ const AIPropertyHub = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16 sm:pt-20 pb-8 sm:pb-12">
-      <AiHubSEO />
-      <StructuredData type="aiHub" />
-      <div className="container mx-auto px-4">
-        {/* Hero section with gradient background - responsive padding */}
-        <div className="mb-8 sm:mb-12 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl sm:rounded-2xl p-5 sm:p-8 shadow-lg sm:shadow-xl">
+  <div className="min-h-screen bg-gray-50 pt-16 sm:pt-20 pb-8 sm:pb-12">
+    <AiHubSEO />
+    <StructuredData type="aiHub" />
+
+    <div className="container mx-auto px-4">
+
+      {/* Hero Section */}
+      <div
+        className="relative mb-8 sm:mb-12 rounded-xl sm:rounded-2xl overflow-hidden shadow-xl"
+        style={{
+          backgroundImage: `url(${hubImage})`,
+          backgroundSize: "cover", // use "contain" if you prefer
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          backgroundColor: "#ffffff",
+        }}
+      >
+        {/* Overlay */}
+        <div className="absolute inset-0 w-full h-full object-cover"></div>
+
+        {/* Content */}
+        <div className="relative z-10 p-5 sm:p-8">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3 sm:mb-4">
+
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
               AI Property Hub | Real Estate Analysis Tool
             </h1>
-            <p className="text-blue-100 text-lg sm:text-xl mb-6 sm:mb-8">
+
+            <p className="text-gray-600 text-lg sm:text-xl mb-6 sm:mb-8">
               Discover your perfect property with AI-powered insights and market
               analysis
             </p>
 
             {isDeployedVersion ? (
-              <div className="bg-white/95 backdrop-blur rounded-lg sm:rounded-xl p-5 sm:p-6 shadow-md sm:shadow-lg">
+              <div className="bg-white/95 backdrop-blur rounded-lg sm:rounded-xl p-5 sm:p-6 shadow-md">
                 <div className="flex flex-col items-center gap-4">
                   <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
                     <AlertCircle className="w-6 h-6 text-amber-600" />
                   </div>
+
                   <div className="text-center">
                     <h3 className="text-lg font-semibold mb-2">
                       AI Features Limited Online
                     </h3>
+
                     <p className="text-gray-600 mb-4">
                       Due to API limitations, AI property features are only
-                      available in local development environment.
+                      available in the local development environment.
                     </p>
+
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                       <a
                         href="https://github.com/AAYUSH412/Real-Estate-Website"
@@ -330,6 +352,7 @@ const AIPropertyHub = () => {
                         <Github className="w-4 h-4" />
                         <span>View on GitHub</span>
                       </a>
+
                       <a
                         href="https://github.com/AAYUSH412/Real-Estate-Website/archive/refs/heads/main.zip"
                         className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
@@ -342,23 +365,28 @@ const AIPropertyHub = () => {
                 </div>
               </div>
             ) : (
-              <div className="bg-white/95 backdrop-blur rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-md sm:shadow-lg">
-                <SearchForm onSearch={handleSearch} isLoading={isLoading} />
+              <div className="bg-white/90 backdrop-blur rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-md">
+                <SearchForm
+                  onSearch={handleSearch}
+                  isLoading={isLoading}
+                />
               </div>
             )}
+
           </div>
         </div>
+      </div>
 
-        {searchError && (
-          <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6 sm:mb-8 max-w-4xl mx-auto border border-red-100 shadow-sm">
-            <div className="flex items-center">
-              <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
-              <p className="text-sm sm:text-base">{searchError}</p>
-            </div>
+      {searchError && (
+        <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6 sm:mb-8 max-w-4xl mx-auto border border-red-100 shadow-sm">
+          <div className="flex items-center">
+            <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+            <p className="text-sm sm:text-base">{searchError}</p>
           </div>
-        )}
+        </div>
+      )}
 
-        {isLoading && renderLoadingIndicator()}
+      {isLoading && renderLoadingIndicator()}
 
         <div ref={contentRef}>
           {!isLoading && searchPerformed && (

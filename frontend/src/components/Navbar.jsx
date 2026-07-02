@@ -10,14 +10,16 @@ import {
   Search,
   Sparkles,
   BotMessageSquare,
-  Heart,
   Zap,
   Crown,
   UserCircle,
+  Phone,
+  Settings,
 } from "lucide-react";
 import logo from "../assets/home-regular-24.png";
 import { useAuth } from "../context/AuthContext";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 
 // Enhanced Animation Variants
 const navVariants = {
@@ -88,6 +90,7 @@ const Navbar = () => {
   const dropdownRef = useRef(null);
   const { isLoggedIn, user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Handle click outside of dropdown
   useEffect(() => {
@@ -215,7 +218,7 @@ const Navbar = () => {
                       </div>
                       <div className="hidden lg:flex flex-col items-start">
                         <span className="text-sm font-semibold text-gray-700">{user?.name}</span>
-                        <span className="text-xs text-gray-500">Premium Member</span>
+                        {/* <span className="text-xs text-gray-500">Premium Member</span> */}
                       </div>
                       <motion.div
                         animate={{ rotate: isDropdownOpen ? 180 : 0 }}
@@ -243,10 +246,10 @@ const Navbar = () => {
                               </div>
                               <div className="flex-1">
                                 <p className="text-sm font-bold text-gray-900">{user?.name}</p>
-                                <p className="text-xs text-gray-600 truncate">{user?.email}</p>
+                                {/* <p className="text-xs text-gray-600 truncate">{user?.email}</p> */}
                                 <div className="flex items-center gap-1 mt-1">
-                                  <Crown className="w-3 h-3 text-yellow-500" />
-                                  <span className="text-xs text-yellow-600 font-medium">Premium</span>
+                                  {/* <Crown className="w-3 h-3 text-yellow-500" />
+                                  <span className="text-xs text-yellow-600 font-medium">Premium</span> */}
                                 </div>
                               </div>
                             </div>
@@ -254,25 +257,19 @@ const Navbar = () => {
 
                           {/* Menu Items */}
                           <div className="py-2">
-                            <motion.button
-                              whileHover={{ x: 4, backgroundColor: "rgb(243 244 246)" }}
-                              className="w-full px-6 py-3 text-left text-sm text-gray-700 hover:text-blue-600 flex items-center space-x-3 transition-colors"
+                            <button 
+                              onClick={() => {
+                                navigate("/profile");
+                                setIsDropdownOpen(false); // 🌟 Changed from setShowDropdown(false) to match your state variable
+                              }}
+                              className="flex items-center gap-3 w-full text-left p-3 rounded-xl hover:bg-slate-50 text-slate-700 transition-colors"
                             >
-                              <UserCircle className="w-4 h-4" />
+                              <UserCircle size={18} className="text-slate-400" /> {/* 💡 Changed 'User' to 'UserCircle' which you already imported at the top */}
                               <span>My Profile</span>
-                            </motion.button>
+                            </button>                            
                             <motion.button
                               whileHover={{ x: 4, backgroundColor: "rgb(243 244 246)" }}
                               className="w-full px-6 py-3 text-left text-sm text-gray-700 hover:text-blue-600 flex items-center space-x-3 transition-colors"
-                            >
-                              <Heart className="w-4 h-4" />
-                              <span>Saved Properties</span>
-                            </motion.button>
-                            <div className="border-t border-gray-100 my-2" />
-                            <motion.button
-                              whileHover={{ x: 4, backgroundColor: "rgb(254 242 242)" }}
-                              onClick={handleLogout}
-                              className="w-full px-6 py-3 text-left text-sm text-red-600 hover:text-red-700 flex items-center space-x-3 transition-colors"
                             >
                               <LogOut className="w-4 h-4" />
                               <span>Sign out</span>
@@ -382,6 +379,13 @@ const navLinks = [
     icon: Search,
     color: "from-green-500 to-emerald-500",
     description: "Find your dream"
+  },
+  {
+    name: "Contact",
+    path: "/contact",
+    icon: BotMessageSquare,
+    color: "from-purple-500 to-pink-500",
+    description: "Get in touch"
   },
 ];
 
@@ -541,7 +545,14 @@ const MobileNavLinks = ({
       color: "from-green-500 to-emerald-500",
       description: "Find your dream"
     },
-  ];
+    {
+    name: "Contact",
+    path: "/contact",
+    icon: Phone,
+    color: "from-orange-500 to-red-500",
+    description: "Get in touch"
+  },
+];
 
   const isAIHubActive = currentPath.startsWith("/ai-property-hub");
 

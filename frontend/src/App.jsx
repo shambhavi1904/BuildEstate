@@ -9,6 +9,7 @@ import PropertyDetails from './components/properties/propertydetail';
 import Aboutus from './pages/About'
 import Contact from './pages/Contact'
 import Login from './components/login';
+import Profile from "./components/Profile";
 import Signup from './components/signup';
 import ForgotPassword from './components/forgetpassword';
 import ResetPassword from './components/resetpassword';
@@ -40,10 +41,11 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/properties" element={<Properties />} />
         <Route path="/properties/single/:id" element={<PropertyDetails />} />
-        <Route path="/about" element={<Aboutus />} />
+        {/* <Route path="/about" element={<Aboutus />} /> */}
         <Route path="/contact" element={<Contact />} />
         <Route path="/ai-property-hub" element={<AIPropertyHub />} />
         <Route path="*" element={<NotFoundPage />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
       <Footer />
       <ToastContainer />

@@ -6,26 +6,25 @@ import ContactInfoItem from './InfoItem';
 const contactInfo = [
   {
     icon: Phone,
-    title: 'Phone',
-    content: '+1 (234) 567-890',
-    link: 'tel:+1234567890',
+    title: "Phone",
+    content: "+91 9482573948",
+    link: "tel:+919482573948",
   },
   {
     icon: Mail,
-    title: 'Email',
-    content: 'support@buildestate.com',
-    link: 'mailto:support@buildestate.com',
+    title: "Email",
+    content: "asbhat821@gmail.com",
+    link: "mailto:asbhat821@gmail.com",
   },
   {
     icon: MapPin,
-    title: 'Address',
-    content: '123 Main Street, City, Country',
-    link: '#map',
+    title: "Location",
+    content: "Bengaluru, Karnataka, India",
   },
   {
     icon: Clock,
-    title: 'Working Hours',
-    content: 'Mon-Fri: 9 AM - 6 PM',
+    title: "Working Hours",
+    content: "Monday - Saturday | 9:00 AM - 6:00 PM",
   },
 ];
 
@@ -37,7 +36,9 @@ export default function ContactInfo() {
       viewport={{ once: true }}
       className="bg-white p-8 rounded-2xl shadow-sm"
     >
-      <h2 className="text-2xl font-bold mb-8">Our Office</h2>
+      <h2 className="text-2xl font-bold mb-8">
+        Contact Information
+      </h2>
       <div className="space-y-6">
         {contactInfo.map((info, index) => (
           <ContactInfoItem key={index} {...info} />

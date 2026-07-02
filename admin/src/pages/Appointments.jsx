@@ -337,6 +337,7 @@ const Appointments = () => {
 
                     {/* Actions */}
                     <td className="px-6 py-4">
+
                       {appointment.status === "pending" && (
                         <div className="flex items-center gap-2">
                           <button
@@ -347,6 +348,7 @@ const Appointments = () => {
                           >
                             <Check className="w-4 h-4" />
                           </button>
+
                           <button
                             onClick={() =>
                               handleStatusChange(appointment._id, "cancelled")
@@ -357,6 +359,30 @@ const Appointments = () => {
                           </button>
                         </div>
                       )}
+
+                      {appointment.status === "confirmed" && (
+                        <button
+                          onClick={() =>
+                            handleStatusChange(appointment._id, "completed")
+                          }
+                          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                          Complete
+                        </button>
+                      )}
+
+                      {appointment.status === "completed" && (
+                        <span className="text-green-600 font-medium">
+                          ✓ Visit Done
+                        </span>
+                      )}
+
+                      {appointment.status === "cancelled" && (
+                        <span className="text-red-500 font-medium">
+                          Cancelled
+                        </span>
+                      )}
+
                     </td>
                   </motion.tr>
                 ))}

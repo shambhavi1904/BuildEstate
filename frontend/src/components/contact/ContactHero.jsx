@@ -1,73 +1,71 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { motion } from "framer-motion";
+import contactBg from "../../assets/images/contact.png";
 
-export default function Hero() {
+export default function ContactHero() {
   return (
-    <div className="relative h-[50vh] flex items-center justify-center my-6 mx-6 rounded-2xl overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 z-0">
+    <section className="relative h-[500px] md:h-[600px] overflow-hidden flex items-center justify-center">
+
+      {/* Background Image */}
+      <img
+        src={contactBg}
+        alt="Contact Background"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+
+      {/* Optional white overlay for better readability */}
+      <div className="absolute inset-0 bg-white/10"></div>
+
+      {/* Content */}
+      <div className="relative z-10 max-w-4xl mx-auto text-center px-6">
+
+        <motion.p
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="uppercase tracking-[6px] text-blue-600 font-semibold"
+        >
+          WE'RE HERE TO HELP
+        </motion.p>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.7 }}
+          className="text-5xl md:text-6xl  text-slate-900 mt-4"
+        >
+          Get in Touch With Us
+        </motion.h1>
+
+        {/* Decorative Line */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500"
-          animate={{
-            background: [
-              'linear-gradient(to bottom right, rgba(37, 99, 235, 1), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8))',
-              'linear-gradient(to bottom right, rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), rgba(37, 99, 235, 1))',
-              'linear-gradient(to bottom right, rgba(236, 72, 153, 0.8), rgba(37, 99, 235, 1), rgba(147, 51, 234, 0.9))'
-            ]
-          }}
-          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-        />
-        
-        {/* Animated shapes */}
-        <div className="absolute inset-0 opacity-20">
-          <motion.div 
-            className="absolute top-1/3 left-1/4 w-64 h-64 rounded-full bg-blue-300"
-            animate={{ 
-              x: [0, 30, 0, -30, 0],
-              y: [0, -30, 0, 30, 0],
-              scale: [1, 1.1, 1, 0.9, 1]
-            }}
-            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          />
-          
-          <motion.div 
-            className="absolute bottom-1/3 right-1/4 w-48 h-48 rounded-full bg-pink-300"
-            animate={{ 
-              x: [0, -40, 0, 40, 0],
-              y: [0, 40, 0, -40, 0],
-              scale: [1, 0.9, 1, 1.1, 1]
-            }}
-            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </div>
-        
-        {/* Pattern overlay */}
-        <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjMiPjxwYXRoIGQ9Ik01IDEwQzMuODk1IDEwIDMgMTAuODk1IDMgMTJ2MzhjMCAxLjEwNS44OTUgMiAyIDJoMzhWMTBINXptMzgtMkg1QzIuODEgOCAxIDkuODEgMSAxMnYzOGMwIDIuMTkgMS43OSA0IDQgNGg0MWMxLjEwNSAwIDItLjg5NSAyLTJWMTBjMC0xLjEwNS0uODk1LTItMi0yaC0zeiIvPjwvZz48L2c+PC9zdmc+')]"></div>
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ delay: 0.5 }}
+          className="flex justify-center items-center gap-3 mt-8"
+        >
+          <div className="w-20 h-[3px] bg-blue-600 rounded-full"></div>
+
+          <div className="w-4 h-4 rounded-full bg-blue-600"></div>
+
+          <div className="w-20 h-[3px] bg-blue-600 rounded-full"></div>
+        </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="mt-8 text-lg md:text-xl text-slate-700 leading-9 max-w-3xl mx-auto"
+        >
+          Whether you're searching for your dream home, planning your next
+          investment, or have questions about any property, our team is here to
+          help.
+          <br />
+          Send us a message and we'll get back to you as soon as possible.
+        </motion.p>
+
       </div>
 
-      {/* Content Section */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.8 }}
-        className="relative text-center text-white px-4 max-w-4xl mx-auto z-10"
-      >
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 leading-tight">
-          Get in Touch With Us
-        </h1>
-        <p className="text-lg md:text-xl leading-relaxed font-light">
-          Have questions about our properties? Need assistance with finding your perfect home?
-          Our team is here to help you every step of the way.
-        </p>
-        
-        {/* Decorative line */}
-        <motion.div 
-          className="w-24 h-1 bg-white mx-auto mt-8"
-          initial={{ width: 0, opacity: 0 }}
-          animate={{ width: 96, opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-        />
-      </motion.div>
-    </div>
+    </section>
   );
 }

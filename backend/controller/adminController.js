@@ -29,16 +29,29 @@ export const getAdminStats = async (req, res) => {
   try {
     const [
       totalProperties,
-      activeListings,
       totalUsers,
       pendingAppointments,
+      forSale,
+      forRent,
+      apartments,
+      houses,
+      villas,
+      offices,
       recentActivity,
       viewsData,
     ] = await Promise.all([
       Property.countDocuments(),
-      Property.countDocuments({ status: "active" }),
       User.countDocuments(),
       Appointment.countDocuments({ status: "pending" }),
+
+      Property.countDocuments({ availability: "buy" }),
+      Property.countDocuments({ availability: "rent" }),
+
+      Property.countDocuments({ type: "Apartment" }),
+      Property.countDocuments({ type: "House" }),
+      Property.countDocuments({ type: "Villa" }),
+      Property.countDocuments({ type: "Office" }),
+
       getRecentActivity(),
       getViewsData(),
     ]);
@@ -47,15 +60,24 @@ export const getAdminStats = async (req, res) => {
       success: true,
       stats: {
         totalProperties,
-        activeListings,
         totalUsers,
         pendingAppointments,
+
+        forSale,
+        forRent,
+
+        apartments,
+        houses,
+        villas,
+        offices,
+
         recentActivity,
         viewsData,
       },
     });
   } catch (error) {
     console.error("Admin stats error:", error);
+
     res.status(500).json({
       success: false,
       message: "Error fetching admin statistics",

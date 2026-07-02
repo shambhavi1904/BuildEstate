@@ -1,6 +1,7 @@
 import Appointment from "../models/appointmentModel.js";
 import Property from "../models/propertymodel.js";
 import User from "../models/Usermodel.js";
+import { sendEmail } from "../config/nodemailer.js";
 
 /* =====================================================
    Schedule Viewing
@@ -277,22 +278,86 @@ export const getAppointmentStats = async (req, res) => {
 
 
 /* =====================================================
-   Dummy Meeting Link
+  Meeting Link
 ===================================================== */
 
-export const updateAppointmentMeetingLink = async (
-  req,
-  res
-) => {
+export const updateAppointmentMeetingLink = async (req, res) => {
+  try {
+    const { appointmentId, meetingLink } = req.body;
 
-  return res.json({
-    success: true,
-    message:
-      "Meeting links are disabled in this project.",
-  });
+    if (!meetingLink) {
+      return res.status(400).json({
+        success: false,
+        message: "Meeting link is required",
+      });
+    }
 
+    const appointment = await Appointment.findById(appointmentId)
+      .populate("userId", "name email")
+      .populate("propertyId", "title location");
+
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found",
+      });
+    }
+
+    // Save meeting link
+    appointment.meetingLink = meetingLink;
+    await appointment.save();
+
+    // Send Email
+    await sendEmail({
+      to: appointment.userId.email,
+      subject: "BuildEstate Property Viewing Meeting Link",
+      html: `
+        <h2>Hello ${appointment.userId.name},</h2>
+
+        <p>Your property viewing appointment has been confirmed.</p>
+
+        <h3>Property Details</h3>
+
+        <p><b>Property:</b> ${appointment.propertyId.title}</p>
+
+        <p><b>Location:</b> ${appointment.propertyId.location}</p>
+
+        <p><b>Date:</b> ${new Date(
+          appointment.date
+        ).toLocaleDateString()}</p>
+
+        <p><b>Time:</b> ${appointment.time}</p>
+
+        <br>
+
+        <p><b>Meeting Link</b></p>
+
+        <a href="${meetingLink}">
+          ${meetingLink}
+        </a>
+
+        <br><br>
+
+        <p>Thank you,</p>
+
+        <h3>BuildEstate Team</h3>
+      `,
+    });
+
+    return res.json({
+      success: true,
+      message: "Meeting link saved and email sent.",
+      appointment,
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
-
 
 /* =====================================================
    Dummy Feedback

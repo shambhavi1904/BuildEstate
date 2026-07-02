@@ -303,9 +303,13 @@ const PropertyListings = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">For Sale</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {properties.filter(p => p.availability === 'sale').length}
-                </p>
-              </div>
+                  {
+                  properties.filter(
+                    p => p.availability?.toLowerCase() === "buy"
+                  ).length
+                  }
+                  </p>
+                </div>
               <div className="p-3 bg-purple-50 rounded-xl">
                 <TrendingUp className="w-6 h-6 text-purple-600" />
               </div>
@@ -500,7 +504,9 @@ const PropertyListings = () => {
                             ? 'bg-green-500/90 text-white' 
                             : 'bg-blue-500/90 text-white'
                         }`}>
-                          For {property.availability}
+                          {property.availability === "buy"
+                          ? "For Sale"
+                          : "For Rent"}
                         </span>
                       </div>
 
